@@ -1,0 +1,8 @@
+Flask
+pandas
+plotly
+numpy
+openpyxl  # For Excel file support
+gunicorn  # For production server
+Werkzeug
+python-dotenv 

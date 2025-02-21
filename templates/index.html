@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Predictive Maintenance Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #3b82f6;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --dark-color: #1f2937;
+      --light-color: #f3f4f6;
+      --border-color: #e5e7eb;
+      --text-primary: #111827;
+      --text-secondary: #4b5563;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: #f8fafc;
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+
+    /* Dashboard Layout */
+    .dashboard-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: white;
+      border-right: 1px solid var(--border-color);
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--dark-color);
+    }
+
+    .sidebar-content {
+      padding: 1.5rem;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 2rem;
+    }
+
+    /* Upload Section */
+    .upload-container {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    .upload-form {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .file-input-wrapper {
+      flex: 1;
+      position: relative;
+    }
+
+    .file-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .file-input:hover {
+      border-color: var(--primary-color);
+    }
+
+    .upload-button {
+      background: var(--primary-color);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .upload-button:hover {
+      background: var(--secondary-color);
+    }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .graph-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .graph-card h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--dark-color);
+    }
+
+    /* Insights Section */
+    .insights-container {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    .insights-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .insight-card {
+      background: var(--light-color);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .insight-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--dark-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .insight-card i {
+      color: var(--primary-color);
+    }
+
+    /* Data Points */
+    .data-point {
+      background: white;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .data-point:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .data-point.anomaly {
+      border-left: 4px solid var(--danger-color);
+    }
+
+    /* Alerts */
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+
+    .alert-danger {
+      background: #fef2f2;
+      color: var(--danger-color);
+      border: 1px solid #fee2e2;
+    }
+
+    .alert-success {
+      background: #f0fdf4;
+      color: var(--success-color);
+      border: 1px solid #dcfce7;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .sidebar {
+        width: 240px;
+      }
+      .main-content {
+        margin-left: 240px;
+      }
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-container {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+      }
+      .main-content {
+        margin-left: 0;
+      }
+      .insights-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .component-status {
+      background: white;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid var(--warning-color);
+    }
+
+    .component-status.critical {
+      border-left-color: var(--danger-color);
+    }
+
+    .status-details {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .status-badge.critical {
+      background: #fee2e2;
+      color: var(--danger-color);
+    }
+
+    .status-badge.warning {
+      background: #fef3c7;
+      color: var(--warning-color);
+    }
+
+    .maintenance-task {
+      background: white;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .priority-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .priority-high .priority-badge {
+      background: #fee2e2;
+      color: var(--danger-color);
+    }
+
+    .priority-medium .priority-badge {
+      background: #fef3c7;
+      color: var(--warning-color);
+    }
+
+    .priority-low .priority-badge {
+      background: #dcfce7;
+      color: var(--success-color);
+    }
+
+    .task-details {
+      font-size: 0.9rem;
+    }
+
+    .task-details p {
+      margin: 0.25rem 0;
+    }
+
+    .health-overview {
+      text-align: center;
+    }
+
+    .health-score {
+      margin-bottom: 1.5rem;
+    }
+
+    .health-score .score {
+      font-size: 2.5rem;
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+
+    .component-counts {
+      display: flex;
+      justify-content: space-around;
+      gap: 1rem;
+    }
+
+    .count-item {
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .count-item span {
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .count-item.critical span {
+      color: var(--danger-color);
+    }
+
+    .count-item.warning span {
+      color: var(--warning-color);
+    }
+
+    .count-item.good span {
+      color: var(--success-color);
+    }
+
+    /* New styles for Critical Components Analysis */
+    .trends-section {
+      margin-top: 1rem;
+    }
+
+    .trend-item {
+      margin-bottom: 0.5rem;
+    }
+
+    .trend-item strong {
+      font-weight: 600;
+    }
+
+    .trend-item span {
+      font-size: 0.9rem;
+      margin-left: 0.5rem;
+    }
+
+    .trend-item .trend-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .trend-item .trend-badge.up {
+      background: #dcfce7;
+      color: var(--success-color);
+    }
+
+    .trend-item .trend-badge.down {
+      background: #fef2f2;
+      color: var(--danger-color);
+    }
+
+    /* New styles for Maintenance Analysis */
+    .maintenance-section {
+      margin-top: 1rem;
+    }
+
+    .maintenance-section h4 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .maintenance-task.priority-high {
+      background: #fef2f2;
+    }
+
+    .maintenance-task.priority-medium {
+      background: #fef3c7;
+    }
+
+    .maintenance-task.priority-low {
+      background: #dcfce7;
+    }
+
+    .maintenance-task.priority-high .priority-badge {
+      background: #fee2e2;
+      color: var(--danger-color);
+    }
+
+    .maintenance-task.priority-medium .priority-badge {
+      background: #fef3c7;
+      color: var(--warning-color);
+    }
+
+    .maintenance-task.priority-low .priority-badge {
+      background: #dcfce7;
+      color: var(--success-color);
+    }
+
+    .preventive-measure {
+      margin-bottom: 0.5rem;
+    }
+
+    .preventive-measure h5 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .preventive-measure p {
+      margin: 0.25rem 0;
+    }
+
+    .optimization-suggestion {
+      margin-bottom: 0.5rem;
+    }
+
+    .optimization-suggestion h5 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .optimization-suggestion p {
+      margin: 0.25rem 0;
+    }
+
+    /* Add to your existing CSS */
+    .analysis-section {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .graph-card.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .graph-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .graph-card h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--dark-color);
+    }
+
+    .graph-card h3 i {
+      color: var(--primary-color);
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h1>Maintenance Dashboard</h1>
+      </div>
+      <div class="sidebar-content">
+        <h3>Data Points</h3>
+        {% if data %}
+          {% for row in data %}
+          <div class="data-point {% if row.row_num in anomalies|map(attribute='row') %}anomaly{% endif %}">
+            <strong>#{{ loop.index }}</strong>
+            <div>Brakes: {{ row.brakes }}%</div>
+            <div>Filters: {{ row.filters }}%</div>
+            <div>Cables: {{ row.cables }}%</div>
+          </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              <i class="fas fa-info-circle"></i> {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <!-- Upload Section -->
+      <div class="upload-container">
+        <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" class="upload-form">
+          <div class="file-input-wrapper">
+            <input type="file" id="file" name="file" accept=".csv,.xlsx,.xls" required class="file-input">
+          </div>
+          <button type="submit" class="upload-button">
+            <i class="fas fa-upload"></i> Upload & Process
+          </button>
+        </form>
+        <div class="upload-info">
+          <small>Supported formats: CSV, Excel (.xlsx, .xls) | Required columns: brakes, filters, cables</small>
+        </div>
+      </div>
+
+      {% if data %}
+      <!-- Graphs Section -->
+      <div class="dashboard-grid">
+        <!-- Gauge Charts -->
+        <div class="graph-card">
+          <h3><i class="fas fa-tachometer-alt"></i> Brake Reading</h3>
+          {{ graphs.brakes_gauge | safe }}
+        </div>
+        <div class="graph-card">
+          <h3><i class="fas fa-tachometer-alt"></i> Filter Reading</h3>
+          {{ graphs.filters_gauge | safe }}
+        </div>
+        <div class="graph-card">
+          <h3><i class="fas fa-tachometer-alt"></i> Cable Reading</h3>
+          {{ graphs.cables_gauge | safe }}
+        </div>
+        
+        <!-- Comparison Charts -->
+        <div class="graph-card">
+          <h3><i class="fas fa-chart-bar"></i> Current vs Average Readings</h3>
+          {{ graphs.bar | safe }}
+        </div>
+      </div>
+
+      <!-- Additional Analysis Charts -->
+      <div class="analysis-section">
+        <div class="graph-card full-width">
+          <h3><i class="fas fa-chart-line"></i> Time Series Analysis with Moving Averages</h3>
+          {{ graphs.timeseries | safe }}
+        </div>
+        
+        <div class="graph-card">
+          <h3><i class="fas fa-th"></i> Correlation Matrix</h3>
+          {{ graphs.heatmap | safe }}
+        </div>
+        
+        <div class="graph-card">
+          <h3><i class="fas fa-box-plot"></i> Value Distributions</h3>
+          {{ graphs.box_plot | safe }}
+        </div>
+        
+        <div class="graph-card full-width">
+          <h3><i class="fas fa-project-diagram"></i> Component Relationships</h3>
+          {{ graphs.scatter_matrix | safe }}
+        </div>
+      </div>
+
+      <!-- Insights Section -->
+      <div class="insights-container">
+        <div class="insights-grid">
+          <div class="insight-card">
+            <h3><i class="fas fa-exclamation-triangle"></i> Critical Components Analysis</h3>
+            {% if stats.detailed_analysis.insights.critical_analysis %}
+                {% for analysis in stats.detailed_analysis.insights.critical_analysis %}
+                <div class="component-status {% if analysis.severity == 'High' %}critical{% else %}warning{% endif %}">
+                    <h4>{{ analysis.component|title }}</h4>
+                    <div class="status-details">
+                        <p><i class="fas fa-exclamation-circle"></i> Severity: {{ analysis.severity }}</p>
+                        <p><i class="fas fa-chart-line"></i> Trend: {{ analysis.trend }}</p>
+                        <p><i class="fas fa-info-circle"></i> {{ analysis.reason }}</p>
+                        <p><i class="fas fa-impact"></i> Impact: {{ analysis.impact }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No critical components detected</p>
+            {% endif %}
+
+            <!-- Component Trends -->
+            <div class="trends-section">
+                <h4>Component Trends</h4>
+                {% for component, trend in stats.detailed_analysis.trends.items() %}
+                <div class="trend-item">
+                    <strong>{{ component|title }}:</strong>
+                    <span class="trend-badge {{ trend.trend.lower() }}">
+                        {{ trend.trend }}
+                        <i class="fas fa-arrow-{{ 'up' if trend.recent_trend == 'Up' else 'down' }}"></i>
+                    </span>
+                    <p>Change Rate: {{ trend.rate_of_change }}% per reading</p>
+                    <p>Peak Usage: {{ trend.peak_usage_frequency }}% of time</p>
+                </div>
+                {% endfor %}
+            </div>
+          </div>
+
+          <div class="insight-card">
+            <h3><i class="fas fa-tools"></i> Maintenance Analysis</h3>
+            
+            <!-- Immediate Actions -->
+            <div class="maintenance-section">
+                <h4><i class="fas fa-exclamation-circle"></i> Immediate Actions</h4>
+                {% if stats.detailed_analysis.insights.maintenance_recommendations %}
+                    {% for rec in stats.detailed_analysis.insights.maintenance_recommendations %}
+                    <div class="maintenance-task priority-{{ rec.urgency.lower() }}">
+                        <div class="task-header">
+                            <h5>{{ rec.component|title }}</h5>
+                            <span class="priority-badge">{{ rec.urgency }}</span>
+                        </div>
+                        <div class="task-details">
+                            <p><i class="fas fa-clock"></i> {{ rec.action }}</p>
+                            <p><i class="fas fa-info-circle"></i> {{ rec.reason }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No immediate actions required</p>
+                {% endif %}
+            </div>
+
+            <!-- Preventive Measures -->
+            <div class="maintenance-section">
+                <h4><i class="fas fa-shield-alt"></i> Preventive Measures</h4>
+                {% if stats.detailed_analysis.insights.preventive_measures %}
+                    {% for measure in stats.detailed_analysis.insights.preventive_measures %}
+                    <div class="preventive-measure">
+                        <h5>{{ measure.component|title }}</h5>
+                        <p><i class="fas fa-check-circle"></i> {{ measure.measure }}</p>
+                        <p><i class="fas fa-clock"></i> Frequency: {{ measure.frequency }}</p>
+                        <p><i class="fas fa-info-circle"></i> {{ measure.reason }}</p>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <!-- Optimization Suggestions -->
+            <div class="maintenance-section">
+                <h4><i class="fas fa-lightbulb"></i> Optimization Suggestions</h4>
+                {% if stats.detailed_analysis.insights.optimization_suggestions %}
+                    {% for opt in stats.detailed_analysis.insights.optimization_suggestions %}
+                    <div class="optimization-suggestion">
+                        <h5>{{ opt.component|title }}</h5>
+                        <p><i class="fas fa-star"></i> {{ opt.suggestion }}</p>
+                        <p><i class="fas fa-chart-line"></i> Impact: {{ opt.potential_impact }}</p>
+                        <p><i class="fas fa-check"></i> {{ opt.expected_benefit }}</p>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+          </div>
+
+          <div class="insight-card">
+            <h3><i class="fas fa-chart-pie"></i> System Health Overview</h3>
+            <div class="health-overview">
+                <div class="health-score">
+                    <h4>Overall Health</h4>
+                    <div class="score">{{ stats.performance_metrics.overall_health }}%</div>
+                </div>
+                <div class="component-counts">
+                    <div class="count-item critical">
+                        <span>{{ stats.performance_metrics.critical_count }}</span>
+                        Critical
+                    </div>
+                    <div class="count-item warning">
+                        <span>{{ stats.performance_metrics.warning_count }}</span>
+                        Warning
+                    </div>
+                    <div class="count-item good">
+                        <span>{{ stats.performance_metrics.healthy_count }}</span>
+                        Healthy
+                    </div>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Anomalies Section -->
+      {% if anomalies %}
+      <div class="insights-container">
+        <h2><i class="fas fa-exclamation-circle"></i> Detected Anomalies</h2>
+        {% for anomaly in anomalies %}
+        <div class="alert alert-danger">
+          <strong>Row {{ anomaly.row }}:</strong>
+          <ul>
+            {% for message in anomaly.messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>
+
